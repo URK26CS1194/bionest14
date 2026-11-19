@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioNest - Eco Packaging Quiz</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f5f7f1; color:#1d2b22; margin:0; padding:20px; display:flex; justify-content:center; }
+  .quiz { width:100%; max-width:520px; }
+  h1 { color:#2e5a3c; margin:0; }
+  .card { background:#fff; border:1px solid #d8dfd2; border-radius:10px; padding:18px; margin-top:14px; }
+  .progress { height:8px; background:#dfe7d6; border-radius:4px; overflow:hidden; }
+  #bar { height:100%; width:0; background:#2e5a3c; transition: width .3s; }
+  .top { display:flex; justify-content:space-between; font-size:14px; margin:12px 0 6px; }
+  #options { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  .option { text-align:left; padding:10px 12px; border:2px solid #c9d3c0; border-radius:6px; background:#fff; cursor:pointer; font:inherit; transition: background .2s, border-color .2s; }
+  .option:hover:not(:disabled) { background:#eef5e6; border-color:#7fb069; }
+  .option.correct { background:#dff0d8; border-color:#2e8b57; }
+  .option.wrong { background:#f8d7da; border-color:#c0392b; }
+  #feedback { min-height:22px; margin-top:10px; font-weight:bold; }
+  #next, #restart { margin-top:12px; padding:10px 18px; background:#2e5a3c; color:#fff; border:0; border-radius:4px; cursor:pointer; font:inherit; }
+</style>
+</head>
+<body>
+<div class="quiz">
+  <h1>BioNest Eco Quiz</h1>
+  <p>Biodegradable packaging solutions &ndash; how much do you know?</p>
+
+  <div class="progress"><div id="bar"></div></div>
+  <div class="top"><span id="counter"></span><span id="score"></span></div>
+
+  <div class="card" id="quizCard">
+    <h2 id="question" style="font-size:19px;margin-top:0"></h2>
+    <div id="options"></div>
+    <div id="feedback" aria-live="polite"></div>
+    <button id="next" type="button" hidden>Next question</button>
+  </div>
+
+  <div class="card" id="resultCard" hidden>
+    <h2>Quiz complete</h2>
+    <p id="finalScore"></p>
+    <button id="restart" type="button">Try again</button>
+  </div>
+</div>
+
+<script>
+  const quizData = [
+    { q: "Which material used in BioNest products is made from cornstarch or sugarcane?",
+      options: ["PVC", "PLA (polylactic acid)", "Polystyrene", "Nylon"], answer: 1 },
+    { q: "What does 'biodegradable' mean?",
+      options: ["It can be melted and reused", "It can be broken down naturally by microorganisms", "It is made of paper only", "It floats on water"], answer: 1 },
+    { q: "Where should a compostable mailer go after use?",
+      options: ["Compost bin", "Burn it", "Drain", "Plastic recycling only"], answer: 0 },
+    { q: "Which packaging stays in the environment for the longest time?",
+      options: ["Molded fibre tray", "Cornstarch cutlery", "Conventional plastic film", "Paper sleeve"], answer: 2 },
+    { q: "Which ink suits compostable packaging best?",
+      options: ["Plant-based ink", "Heavy-metal ink", "Solvent-based ink", "Glitter ink"], answer: 0 }
+  ];
+
+  let currentQuestionIndex = 0;
+  let score = 0;
+  let answered = false;
+
+  const qEl = document.getElementById("question");
+  const optionsEl = document.getElementById("options");
+  const feedbackEl = document.getElementById("feedback");
+  const nextBtn = document.getElementById("next");
+
+  function loadQuestion() {
+    const item = quizData[currentQuestionIndex];
+    answered = false;
+    qEl.textContent = item.q;
+    optionsEl.innerHTML = "";
+    feedbackEl.textContent = "";
+    nextBtn.hidden = true;
+    item.options.forEach((text, i) => {
+      const b = document.createElement("button");
+      b.className = "option";
+      b.type = "button";
+      b.textContent = text;
+      b.addEventListener("click", () => checkAnswer(i, b));
+      optionsEl.appendChild(b);
+    });
+    document.getElementById("counter").textContent = "Question " + (currentQuestionIndex + 1) + " of " + quizData.length;
+    document.getElementById("score").textContent = "Score: " + score;
+    document.getElementById("bar").style.width = (currentQuestionIndex / quizData.length * 100) + "%";
+  }
+
+  function checkAnswer(i, button) {
+    if (answered) return;
+    answered = true;
+    const correct = quizData[currentQuestionIndex].answer;
+    const buttons = optionsEl.querySelectorAll(".option");
+    buttons.forEach(b => b.disabled = true);
+    buttons[correct].classList.add("correct");
+    if (i === correct) {
+      score++;
+      feedbackEl.textContent = "Correct!";
+    } else {
+      button.classList.add("wrong");
+      feedbackEl.textContent = "Not quite. The right answer is highlighted.";
+    }
+    document.getElementById("score").textContent = "Score: " + score;
+    nextBtn.textContent = currentQuestionIndex === quizData.length - 1 ? "See result" : "Next question";
+    nextBtn.hidden = false;
+    nextBtn.focus();
+  }
+
+  nextBtn.addEventListener("click", () => {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < quizData.length) loadQuestion();
+    else showResult();
+  });
+
+  function showResult() {
+    document.getElementById("quizCard").hidden = true;
+    document.getElementById("resultCard").hidden = false;
+    document.getElementById("bar").style.width = "100%";
+    document.getElementById("finalScore").textContent = "You scored " + score + " out of " + quizData.length + ".";
+  }
+
+  document.getElementById("restart").addEventListener("click", () => {
+    currentQuestionIndex = 0; score = 0;
+    document.getElementById("resultCard").hidden = true;
+    document.getElementById("quizCard").hidden = false;
+    loadQuestion();
+  });
+
+  loadQuestion();
+</script>
+</body>
+</html>
